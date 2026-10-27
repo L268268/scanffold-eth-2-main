@@ -11,7 +11,7 @@ const publicClient = createPublicClient({
 export async function GET(
   request: NextRequest,
   // Next.js 15 起，动态路由的 params 是 Promise，必须 await 后再用
-  { params }: { params: Promise<{ tokenId: string }> }
+  { params }: { params: Promise<{ tokenId: string }> },
 ) {
   try {
     const { tokenId } = await params;
@@ -62,9 +62,6 @@ export async function GET(
     return NextResponse.json(metadata);
   } catch (error) {
     console.error("Error fetching NFT metadata:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

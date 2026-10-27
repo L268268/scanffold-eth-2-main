@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
-import { useScaffoldReadContract, useScaffoldWriteContract, useScaffoldContract } from "~~/hooks/scaffold-eth";
 import { formatEther } from "viem";
 // 新增：写合约与价格解析
 import { parseEther } from "viem";
+import { useAccount } from "wagmi";
+import { useScaffoldContract, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { getMetadataFromIPFS } from "~~/utils/simpleNFT/ipfs-fetch";
 
 interface ListingWithId {
@@ -60,7 +60,10 @@ export const MyListings = () => {
   }, [activeListings, connectedAddress]);
 
   // 使用稳定 key 作为依赖，避免数组引用变化导致无限循环
-  const listingsKey = useMemo(() => filteredActiveListings.map(l => String(l.listingId)).join(","), [filteredActiveListings]);
+  const listingsKey = useMemo(
+    () => filteredActiveListings.map(l => String(l.listingId)).join(","),
+    [filteredActiveListings],
+  );
 
   useEffect(() => {
     // 重要：不要将 yourCollectibleContract 放入依赖，避免其对象引用变化导致无限循环
@@ -79,7 +82,7 @@ export const MyListings = () => {
             const ipfsHash = tokenURI.replace("https://green-payable-guan-79.mypinata.cloud/ipfs/", "");
             const metadata = await getMetadataFromIPFS(ipfsHash);
             result.push({ ...l, metadata });
-          } catch (e) {
+          } catch {
             // 即使元数据失败也保留记录
             result.push({ ...l });
           }
@@ -98,7 +101,9 @@ export const MyListings = () => {
     return () => {
       cancelled = true;
     };
-  }, [listingsKey]);
+    // yourCollectibleContract 每次渲染都是新引用，放进依赖会无限循环，故此处显式关闭检查
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingsKey, filteredActiveListings]);
 
   const handleCancel = async (listingId: bigint) => {
     try {
@@ -176,16 +181,27 @@ export const MyListings = () => {
       {/* 批量下架面板 */}
       <div className="mb-4 flex flex-wrap gap-2 items-center">
         {!bulkMode ? (
-          <button className="btn btn-primary btn-sm" onClick={() => setBulkMode(true)}>批量下架</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setBulkMode(true)}>
+            批量下架
+          </button>
         ) : (
           <div className="flex flex-wrap gap-2 items-center w-full">
-            <button className="btn btn-outline btn-sm" onClick={() => setSelectedListingIds(myListings.map(i => i.listingId))}>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={() => setSelectedListingIds(myListings.map(i => i.listingId))}
+            >
               全选全部
             </button>
             <button className="btn btn-outline btn-sm" onClick={() => setSelectedListingIds([])}>
               清空选择
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => { setBulkMode(false); setSelectedListingIds([]); }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setBulkMode(false);
+                setSelectedListingIds([]);
+              }}
+            >
               退出批量
             </button>
             <button
@@ -203,7 +219,9 @@ export const MyListings = () => {
               )}
             </button>
             {isBulkCancelling && bulkProgress ? (
-              <span className="text-xs opacity-70">进度 {bulkProgress.done}/{bulkProgress.total}</span>
+              <span className="text-xs opacity-70">
+                进度 {bulkProgress.done}/{bulkProgress.total}
+              </span>
             ) : null}
           </div>
         )}
@@ -253,7 +271,9 @@ export const MyListings = () => {
                   <p className="text-sm opacity-70 line-clamp-2">{item.metadata.description}</p>
                 )}
                 <div className="mt-2">
-                  <div className="text-sm">价格: <span className="font-semibold">{formatEther(item.price)} ETH</span></div>
+                  <div className="text-sm">
+                    价格: <span className="font-semibold">{formatEther(item.price)} ETH</span>
+                  </div>
                   <div className="text-xs opacity-70">上架ID: {String(item.listingId)}</div>
                 </div>
 

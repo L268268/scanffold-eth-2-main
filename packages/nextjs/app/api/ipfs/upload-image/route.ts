@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    
+
     if (!file) {
       return Response.json({ error: "No file provided" }, { status: 400 });
     }
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // Create FormData for Pinata
     const pinataFormData = new FormData();
     pinataFormData.append("file", file);
-    
+
     const pinataMetadata = JSON.stringify({
       name: `NFT_Image_${Date.now()}`,
     });
@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await response.json();
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       ipfsHash: result.IpfsHash,
-      imageUrl: `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`
+      imageUrl: `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`,
     });
   } catch (error) {
     console.error("Error uploading image to Pinata:", error);

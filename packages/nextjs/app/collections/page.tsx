@@ -46,8 +46,8 @@ export default function CollectionsPage() {
       for (const l of arr) {
         sellers.add(l.seller.toLowerCase());
         sum += l.price;
-        floor = floor === null ? l.price : (l.price < floor ? l.price : floor);
-        ceiling = ceiling === null ? l.price : (l.price > ceiling ? l.price : ceiling);
+        floor = floor === null ? l.price : l.price < floor ? l.price : floor;
+        ceiling = ceiling === null ? l.price : l.price > ceiling ? l.price : ceiling;
       }
       const count = arr.length;
       const avg = count > 0 ? sum / BigInt(count) : 0n;
@@ -73,7 +73,7 @@ export default function CollectionsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {stats.map((c) => (
+          {stats.map(c => (
             <div key={c.contract} className="card bg-base-100 shadow-xl border border-base-300">
               <div className="card-body p-6">
                 <div className="flex items-center justify-between mb-2">

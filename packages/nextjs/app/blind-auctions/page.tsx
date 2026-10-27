@@ -1,6 +1,7 @@
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
-import { parseEther, encodeAbiParameters, keccak256, toHex } from "viem";
+import { encodeAbiParameters, keccak256, parseEther, toHex } from "viem";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
@@ -39,13 +40,20 @@ export default function BlindAuctionsPage() {
     return () => clearInterval(t);
   }, []);
 
-  const { data: auctionsData, isLoading: isLoadingAuctions, refetch } = useScaffoldReadContract({
+  const {
+    data: auctionsData,
+    isLoading: isLoadingAuctions,
+    refetch,
+  } = useScaffoldReadContract({
     contractName: "NFTMarketplace",
     functionName: "getAllActiveBlindAuctions",
   });
 
   // 跳过 simulateContract 以避免因最新区块时间未更新造成的时间窗口误判（如揭示/结算期）
-  const { writeContractAsync: writeMarketplace } = useScaffoldWriteContract({ contractName: "NFTMarketplace", disableSimulate: true });
+  const { writeContractAsync: writeMarketplace } = useScaffoldWriteContract({
+    contractName: "NFTMarketplace",
+    disableSimulate: true,
+  });
 
   const auctions: BlindAuction[] = useMemo(() => {
     if (!auctionsData) return [] as BlindAuction[];
@@ -54,7 +62,7 @@ export default function BlindAuctionsPage() {
     return arr
       .map((a: any) => {
         const idRaw = a.auctionId ?? a.id ?? (Array.isArray(a) ? a[0] : undefined);
-        const tokenIdRaw = a.tokenId ?? (Array.isArray(a) ? a[2] ?? a[3] : undefined);
+        const tokenIdRaw = a.tokenId ?? (Array.isArray(a) ? (a[2] ?? a[3]) : undefined);
         const minBidRaw = a.minBid ?? (Array.isArray(a) ? a[4] : undefined);
         const commitEndRaw = a.commitEnd ?? a.commitEndTime ?? (Array.isArray(a) ? a[5] : undefined);
         const revealEndRaw = a.revealEnd ?? a.revealEndTime ?? (Array.isArray(a) ? a[6] : undefined);
@@ -77,8 +85,8 @@ export default function BlindAuctionsPage() {
 
         return {
           id,
-          seller: a.seller ?? (Array.isArray(a) ? a[3] ?? a[1] : undefined),
-          nftAddress: a.nftContract ?? a.nftAddress ?? (Array.isArray(a) ? a[1] ?? a[2] : undefined),
+          seller: a.seller ?? (Array.isArray(a) ? (a[3] ?? a[1]) : undefined),
+          nftAddress: a.nftContract ?? a.nftAddress ?? (Array.isArray(a) ? (a[1] ?? a[2]) : undefined),
           tokenId,
           minBid,
           commitEndTime,
@@ -116,7 +124,7 @@ export default function BlindAuctionsPage() {
             console.error("Failed to fetch metadata for", a.tokenId.toString(), e);
           }
           return { key: a.tokenId.toString(), meta: undefined } as { key: string; meta: NFTMetadata | undefined };
-        })
+        }),
       );
       setNftMetas(prev => {
         const next = { ...prev };
@@ -125,6 +133,8 @@ export default function BlindAuctionsPage() {
       });
     };
     loadMetas();
+    // 这里刻意不依赖 nftMetas：拉取失败的 tokenId 会被反复判定为 missing，从而无限重跑
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auctions]);
 
   const onCommit = async (auctionId: bigint) => {
@@ -145,13 +155,9 @@ export default function BlindAuctionsPage() {
       const secretBytes32 = keccak256(toHex(secretText));
       const commitment = keccak256(
         encodeAbiParameters(
-          [
-            { type: "uint256" },
-            { type: "bytes32" },
-            { type: "address" },
-          ],
-          [amountWei, secretBytes32, address!]
-        )
+          [{ type: "uint256" }, { type: "bytes32" }, { type: "address" }],
+          [amountWei, secretBytes32, address!],
+        ),
       );
 
       // 保存用于揭示
@@ -221,11 +227,15 @@ export default function BlindAuctionsPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">盲拍市场</h1>
-        <button className="btn btn-ghost btn-sm" onClick={() => refetch()}>刷新</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => refetch()}>
+          刷新
+        </button>
       </div>
 
       {isLoadingAuctions ? (
-        <div className="flex items-center gap-2"><span className="loading loading-spinner loading-sm"></span> 加载中...</div>
+        <div className="flex items-center gap-2">
+          <span className="loading loading-spinner loading-sm"></span> 加载中...
+        </div>
       ) : auctions.length === 0 ? (
         <div className="alert alert-info">当前没有进行中的盲拍</div>
       ) : (
@@ -234,17 +244,19 @@ export default function BlindAuctionsPage() {
             const phase = a.finalized
               ? "已结束"
               : now < Number(a.commitEndTime)
-              ? "提交期"
-              : now < Number(a.revealEndTime)
-              ? "揭示期"
-              : "待结算";
-          const key = a.id.toString();
+                ? "提交期"
+                : now < Number(a.revealEndTime)
+                  ? "揭示期"
+                  : "待结算";
+            const key = a.id.toString();
             const meta = nftMetas[a.tokenId.toString()];
             return (
               <div key={key} className="card bg-base-100 border border-base-300">
                 {/* 图片区 */}
                 <figure className="relative overflow-hidden">
                   {meta?.image ? (
+                    // IPFS 图片源未配置 next/image 的 remotePatterns，这里保持原生 img
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={meta.image}
                       alt={meta?.name || `NFT #${a.tokenId.toString()}`}
@@ -267,11 +279,13 @@ export default function BlindAuctionsPage() {
                     <div className="badge badge-outline">{phase}</div>
                   </div>
                   {/* 名称与基本信息 */}
-                  <div className="text-sm opacity-70">NFT: <Address address={a.nftAddress} size="sm" /> · Token #{a.tokenId.toString()}</div>
-                  {meta?.name && (
-                    <div className="text-sm font-semibold">{meta.name}</div>
-                  )}
-                  <div className="text-sm">卖家: <Address address={a.seller} size="sm" /></div>
+                  <div className="text-sm opacity-70">
+                    NFT: <Address address={a.nftAddress} size="sm" /> · Token #{a.tokenId.toString()}
+                  </div>
+                  {meta?.name && <div className="text-sm font-semibold">{meta.name}</div>}
+                  <div className="text-sm">
+                    卖家: <Address address={a.seller} size="sm" />
+                  </div>
                   <div className="text-sm">最低出价: {Number(a.minBid) / 1e18} ETH</div>
                   <div className="text-xs opacity-60">提交截止: {formatTime(a.commitEndTime)}</div>
                   <div className="text-xs opacity-60">揭示截止: {formatTime(a.revealEndTime)}</div>
@@ -299,7 +313,11 @@ export default function BlindAuctionsPage() {
                         disabled={pendingId === key}
                         onClick={() => onCommit(a.id)}
                       >
-                        {pendingId === key ? (<span className="loading loading-spinner loading-xs"></span>) : "提交出价承诺"}
+                        {pendingId === key ? (
+                          <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                          "提交出价承诺"
+                        )}
                       </button>
                       <div className="text-xs opacity-60">提示：提交期不需要支付 ETH，仅记录承诺。</div>
                     </div>
@@ -328,7 +346,11 @@ export default function BlindAuctionsPage() {
                         disabled={pendingId === key}
                         onClick={() => onReveal(a.id)}
                       >
-                        {pendingId === key ? (<span className="loading loading-spinner loading-xs"></span>) : "揭示并支付"}
+                        {pendingId === key ? (
+                          <span className="loading loading-spinner loading-xs"></span>
+                        ) : (
+                          "揭示并支付"
+                        )}
                       </button>
                       <div className="text-xs opacity-60">提示：揭示时将支付您的出价金额（ETH）。</div>
                     </div>
@@ -337,8 +359,16 @@ export default function BlindAuctionsPage() {
                   {phase === "待结算" && (
                     <div className="mt-3">
                       {address?.toLowerCase() === a.seller.toLowerCase() ? (
-                        <button className="btn btn-accent btn-sm w-full" disabled={pendingId === key} onClick={() => onFinalize(a.id)}>
-                          {pendingId === key ? (<span className="loading loading-spinner loading-xs"></span>) : "结算盲拍"}
+                        <button
+                          className="btn btn-accent btn-sm w-full"
+                          disabled={pendingId === key}
+                          onClick={() => onFinalize(a.id)}
+                        >
+                          {pendingId === key ? (
+                            <span className="loading loading-spinner loading-xs"></span>
+                          ) : (
+                            "结算盲拍"
+                          )}
                         </button>
                       ) : (
                         <div className="alert alert-warning text-sm">等待卖家结算</div>
@@ -349,7 +379,10 @@ export default function BlindAuctionsPage() {
                   {a.finalized && (
                     <div className="mt-3 text-sm">
                       {a.winner ? (
-                        <span>胜者：<Address address={a.winner} size="sm" /> · 最高出价：{(Number(a.highestBid || 0n) / 1e18)} ETH</span>
+                        <span>
+                          胜者：
+                          <Address address={a.winner} size="sm" /> · 最高出价：{Number(a.highestBid || 0n) / 1e18} ETH
+                        </span>
                       ) : (
                         <span>未揭示有效出价或无人参与</span>
                       )}

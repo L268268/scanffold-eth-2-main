@@ -19,16 +19,16 @@ export async function POST(request: NextRequest) {
 
     // 解析CSV文件
     const csvText = await csvFile.text();
-    const lines = csvText.split('\n');
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-    
+    const lines = csvText.split("\n");
+    const headers = lines[0].split(",").map(h => h.replace(/"/g, "").trim());
+
     const nftData = [];
     for (let i = 1; i < lines.length; i++) {
       if (lines[i].trim()) {
-        const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+        const values = lines[i].split(",").map(v => v.replace(/"/g, "").trim());
         const nft: any = {};
         headers.forEach((header, index) => {
-          nft[header] = values[index] || '';
+          nft[header] = values[index] || "";
         });
         nftData.push(nft);
       }
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
 
     // 批量上传图片到Pinata
     const uploadedImages: { [key: string]: string } = {};
-    
+
     for (const imageFile of imageFiles) {
       const imageFormData = new FormData();
       imageFormData.append("file", imageFile);
-      
+
       const pinataMetadata = JSON.stringify({
         name: `NFT_Image_${imageFile.name}_${Date.now()}`,
       });
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // 为每个NFT创建元数据并上传到IPFS
     const metadataResults = [];
-    
+
     for (const nft of nftData) {
       const imageUrl = uploadedImages[nft.image_file];
       if (!imageUrl) {
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         if (traitType && traitValue) {
           attributes.push({
             trait_type: traitType,
-            value: traitValue
+            value: traitValue,
           });
         }
       }
@@ -101,18 +101,18 @@ export async function POST(request: NextRequest) {
       // 添加默认属性
       attributes.push({
         trait_type: "Batch Upload",
-        value: "Excel Import"
+        value: "Excel Import",
       });
       attributes.push({
         trait_type: "Created",
-        value: new Date().toISOString().split('T')[0]
+        value: new Date().toISOString().split("T")[0],
       });
 
       const metadata = {
         name: nft.name,
         description: nft.description || `Custom NFT: ${nft.name}`,
         image: imageUrl,
-        attributes: attributes
+        attributes: attributes,
       };
 
       // 上传元数据到Pinata
@@ -141,21 +141,20 @@ export async function POST(request: NextRequest) {
       metadataResults.push({
         name: nft.name,
         metadataHash: metadataResult.IpfsHash,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
       });
     }
 
     return NextResponse.json({
       success: true,
       message: `成功处理 ${metadataResults.length} 个NFT`,
-      results: metadataResults
+      results: metadataResults,
     });
-
   } catch (error) {
     console.error("Batch upload error:", error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : "批量上传失败"
+      error: error instanceof Error ? error.message : "批量上传失败",
     });
   }
 }

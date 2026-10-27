@@ -1,6 +1,12 @@
 "use client";
 
-import {AirdropMinter,BatchNFTMinter,CustomNFTMinter,ExcelBatchMinter,MyHoldings,MyListings,
+import {
+  AirdropMinter,
+  BatchNFTMinter,
+  CustomNFTMinter,
+  ExcelBatchMinter,
+  MyHoldings,
+  MyListings,
 } from "./_components";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
@@ -54,7 +60,7 @@ const MyNFTs: NextPage = () => {
           </h1>
         </div>
       </div>
-      
+
       {!isConnected || isConnecting ? (
         <div className="flex justify-center">
           <RainbowKitCustomConnectButton />
@@ -65,31 +71,28 @@ const MyNFTs: NextPage = () => {
           <div className="card bg-base-100 shadow-xl w-full max-w-md mx-auto">
             <div className="card-body">
               <h2 className="card-title text-center">Mint Preset NFT</h2>
-              <p className="text-center text-sm opacity-70 mb-4">
-                Mint from predefined collection
-              </p>
+              <p className="text-center text-sm opacity-70 mb-4">Mint from predefined collection</p>
               <button className="btn btn-secondary" onClick={handleMintItem}>
                 Mint NFT
               </button>
             </div>
           </div>
-          
+
           {/* Custom NFT Minter */}
           <CustomNFTMinter />
-          
+
           {/* Batch NFT Minter */}
           <BatchNFTMinter />
-          
+
           {/* Excel Batch Minter */}
           <ExcelBatchMinter />
           {/* Airdrop NFTs */}
           <AirdropMinter />
         </div>
       )}
-      
+
       <MyHoldings />
       <MyListings />
-
     </>
   );
 };

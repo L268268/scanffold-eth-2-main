@@ -89,7 +89,7 @@ export const CustomNFTMinter = () => {
             },
             {
               trait_type: "Created",
-              value: new Date().toISOString().split('T')[0],
+              value: new Date().toISOString().split("T")[0],
             },
           ],
         }),
@@ -129,7 +129,7 @@ export const CustomNFTMinter = () => {
     <div className="card bg-base-100 shadow-xl w-full max-w-md mx-auto">
       <div className="card-body">
         <h2 className="card-title text-center">Create Custom NFT</h2>
-        
+
         {/* File Upload */}
         <div className="form-control w-full">
           <label className="label">
@@ -146,21 +146,15 @@ export const CustomNFTMinter = () => {
         {/* Image Preview */}
         {previewUrl && (
           <div className="mt-4">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-48 object-cover rounded-lg border"
-            />
+            {/* 本地预览用 blob/data URL，不适合走 next/image 优化 */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewUrl} alt="Preview" className="w-full h-48 object-cover rounded-lg border" />
           </div>
         )}
 
         {/* Upload Button */}
         {selectedFile && !uploadedImageUrl && (
-          <button
-            className="btn btn-primary mt-4"
-            onClick={uploadImageToPinata}
-            disabled={isUploading}
-          >
+          <button className="btn btn-primary mt-4" onClick={uploadImageToPinata} disabled={isUploading}>
             {isUploading ? (
               <>
                 <span className="loading loading-spinner loading-sm"></span>
@@ -191,7 +185,7 @@ export const CustomNFTMinter = () => {
                 placeholder="Enter NFT name"
                 className="input input-bordered w-full"
                 value={nftName}
-                onChange={(e) => setNftName(e.target.value)}
+                onChange={e => setNftName(e.target.value)}
               />
             </div>
 
@@ -203,16 +197,12 @@ export const CustomNFTMinter = () => {
                 placeholder="Enter NFT description"
                 className="textarea textarea-bordered w-full"
                 value={nftDescription}
-                onChange={(e) => setNftDescription(e.target.value)}
+                onChange={e => setNftDescription(e.target.value)}
               />
             </div>
 
             {/* Mint Button */}
-            <button
-              className="btn btn-secondary mt-4"
-              onClick={mintCustomNFT}
-              disabled={isMinting || !nftName.trim()}
-            >
+            <button className="btn btn-secondary mt-4" onClick={mintCustomNFT} disabled={isMinting || !nftName.trim()}>
               {isMinting ? (
                 <>
                   <span className="loading loading-spinner loading-sm"></span>

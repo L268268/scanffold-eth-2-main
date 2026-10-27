@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatEther, parseEther } from "viem";
 import { useAccount } from "wagmi";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { Address } from "~~/components/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 // Client-side check to avoid SSR issues
 const isClient = typeof window !== "undefined";
@@ -164,7 +164,11 @@ export default function Marketplace() {
     try {
       setOfferingId(listing.listingId);
       const expiration = BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 3600);
-      await makeOffer({ functionName: "makeOffer", args: [listing.listingId, expiration], value: parseEther(priceStr as any) });
+      await makeOffer({
+        functionName: "makeOffer",
+        args: [listing.listingId, expiration],
+        value: parseEther(priceStr as any),
+      });
       alert("报价已提交！");
       setOfferPrices(prev => ({ ...prev, [key]: "" }));
     } catch (e) {
@@ -221,7 +225,7 @@ export default function Marketplace() {
   // 加载列表和元数据
   useEffect(() => {
     if (!isClient) return;
-    
+
     const loadListings = async () => {
       if (!activeListings || activeListings.length === 0) {
         setLoading(false);
@@ -235,7 +239,7 @@ export default function Marketplace() {
             ...listing,
             metadata,
           };
-        })
+        }),
       );
 
       setListings(listingsWithMetadata);
@@ -253,8 +257,12 @@ export default function Marketplace() {
     // 价格过滤（输入为字符串 ETH）
     let min: bigint | null = null;
     let max: bigint | null = null;
-    try { min = minPrice ? parseEther(minPrice as any) : null; } catch {}
-    try { max = maxPrice ? parseEther(maxPrice as any) : null; } catch {}
+    try {
+      min = minPrice ? parseEther(minPrice as any) : null;
+    } catch {}
+    try {
+      max = maxPrice ? parseEther(maxPrice as any) : null;
+    } catch {}
 
     result = result.filter(l => {
       const priceOk = (min === null || l.price >= min) && (max === null || l.price <= max);
@@ -330,52 +338,113 @@ export default function Marketplace() {
       <div className="mb-6 p-4 bg-base-200 rounded-xl">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="form-control">
-            <label className="label"><span className="label-text">最低价格 (ETH)</span></label>
-            <input className="input input-bordered input-sm" placeholder="0" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+            <label className="label">
+              <span className="label-text">最低价格 (ETH)</span>
+            </label>
+            <input
+              className="input input-bordered input-sm"
+              placeholder="0"
+              value={minPrice}
+              onChange={e => setMinPrice(e.target.value)}
+            />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">最高价格 (ETH)</span></label>
-            <input className="input input-bordered input-sm" placeholder="" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+            <label className="label">
+              <span className="label-text">最高价格 (ETH)</span>
+            </label>
+            <input
+              className="input input-bordered input-sm"
+              placeholder=""
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+            />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">卖家地址包含</span></label>
-            <input className="input input-bordered input-sm" placeholder="0x..." value={sellerQuery} onChange={e => setSellerQuery(e.target.value)} />
+            <label className="label">
+              <span className="label-text">卖家地址包含</span>
+            </label>
+            <input
+              className="input input-bordered input-sm"
+              placeholder="0x..."
+              value={sellerQuery}
+              onChange={e => setSellerQuery(e.target.value)}
+            />
           </div>
           <div className="form-control">
-            <label className="label"><span className="label-text">合约地址</span></label>
-            <input className="input input-bordered input-sm" placeholder="0x..." value={contractQuery} onChange={e => setContractQuery(e.target.value)} />
+            <label className="label">
+              <span className="label-text">合约地址</span>
+            </label>
+            <input
+              className="input input-bordered input-sm"
+              placeholder="0x..."
+              value={contractQuery}
+              onChange={e => setContractQuery(e.target.value)}
+            />
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <div className="form-control">
             <label className="label cursor-pointer">
               <span className="label-text mr-2">排除我的上架</span>
-              <input type="checkbox" className="checkbox checkbox-sm" checked={excludeMine} onChange={e => setExcludeMine(e.target.checked)} />
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm"
+                checked={excludeMine}
+                onChange={e => setExcludeMine(e.target.checked)}
+              />
             </label>
           </div>
-          <select className="select select-bordered select-sm" value={sortBy} onChange={e => setSortBy(e.target.value as any)}>
+          <select
+            className="select select-bordered select-sm"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+          >
             <option value="recent">最近</option>
             <option value="priceAsc">价格升序</option>
             <option value="priceDesc">价格降序</option>
             <option value="tokenIdAsc">TokenId升序</option>
             <option value="tokenIdDesc">TokenId降序</option>
           </select>
-          <button className="btn btn-ghost btn-sm" onClick={() => { setMinPrice(""); setMaxPrice(""); setSellerQuery(""); setContractQuery(""); setExcludeMine(false); setSortBy("recent"); setCurrentPage(1); }}>清空筛选</button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setMinPrice("");
+              setMaxPrice("");
+              setSellerQuery("");
+              setContractQuery("");
+              setExcludeMine(false);
+              setSortBy("recent");
+              setCurrentPage(1);
+            }}
+          >
+            清空筛选
+          </button>
         </div>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2 items-center">
         {!bulkMode ? (
-          <button className="btn btn-primary btn-sm" onClick={() => setBulkMode(true)}>批量购买</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setBulkMode(true)}>
+            批量购买
+          </button>
         ) : (
           <div className="flex flex-wrap gap-2 items-center w-full">
-            <button className="btn btn-outline btn-sm" onClick={() => setSelectedListingIds(pageListings.map(i => i.listingId))}>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={() => setSelectedListingIds(pageListings.map(i => i.listingId))}
+            >
               全选本页
             </button>
             <button className="btn btn-outline btn-sm" onClick={() => setSelectedListingIds([])}>
               清空选择
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => { setBulkMode(false); setSelectedListingIds([]); }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setBulkMode(false);
+                setSelectedListingIds([]);
+              }}
+            >
               退出批量
             </button>
             <button
@@ -396,7 +465,9 @@ export default function Marketplace() {
               <span className="text-xs opacity-70">预估总价 ~ {formatEther(totalSelectedPrice)} ETH</span>
             )}
             {isBulkBuying && bulkProgress ? (
-              <span className="text-xs opacity-70">进度 {bulkProgress.done}/{bulkProgress.total}</span>
+              <span className="text-xs opacity-70">
+                进度 {bulkProgress.done}/{bulkProgress.total}
+              </span>
             ) : null}
           </div>
         )}
@@ -411,7 +482,7 @@ export default function Marketplace() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {pageListings.map((listing) => (
+            {pageListings.map(listing => (
               <div
                 key={`${listing.nftContract}-${listing.tokenId}`}
                 className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-base-300 overflow-hidden group relative"
@@ -437,6 +508,8 @@ export default function Marketplace() {
 
                 <figure className="relative overflow-hidden">
                   {listing.metadata?.image ? (
+                    // IPFS 图片源未配置 next/image 的 remotePatterns，这里保持原生 img
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={listing.metadata.image}
                       alt={listing.metadata.name || "NFT"}
@@ -458,9 +531,7 @@ export default function Marketplace() {
                     {listing.metadata?.name || `NFT #${listing.tokenId.toString()}`}
                   </h3>
                   {listing.metadata?.description && (
-                    <p className="text-sm opacity-70 line-clamp-2 mb-4">
-                      {listing.metadata.description}
-                    </p>
+                    <p className="text-sm opacity-70 line-clamp-2 mb-4">{listing.metadata.description}</p>
                   )}
 
                   {listing.metadata?.attributes && listing.metadata.attributes.length > 0 && (
@@ -468,12 +539,15 @@ export default function Marketplace() {
                       <div className="flex flex-wrap gap-2">
                         {listing.metadata.attributes.slice(0, 2).map((attr, index) => (
                           <div key={index} className="badge badge-outline badge-sm">
-                            <span className="text-xs">{attr.trait_type}: {attr.value}</span>
+                            <span className="text-xs">
+                              {attr.trait_type}: {attr.value}
+                            </span>
                           </div>
                         ))}
                         {listing.metadata.attributes.length > 2 && (
                           <div className="badge badge-ghost badge-sm">
-                            {"+"}{listing.metadata.attributes.length - 2} more
+                            {"+"}
+                            {listing.metadata.attributes.length - 2} more
                           </div>
                         )}
                       </div>
@@ -491,9 +565,7 @@ export default function Marketplace() {
                     <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
                       <span className="text-sm font-semibold">Price</span>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-primary">
-                          {formatEther(listing.price)} ETH
-                        </div>
+                        <div className="text-lg font-bold text-primary">{formatEther(listing.price)} ETH</div>
                       </div>
                     </div>
 
@@ -504,7 +576,9 @@ export default function Marketplace() {
                             className="input input-bordered input-sm flex-1"
                             placeholder="新价格 (ETH)"
                             value={editPrices[listing.listingId.toString()] || ""}
-                            onChange={e => setEditPrices(prev => ({ ...prev, [listing.listingId.toString()]: e.target.value }))}
+                            onChange={e =>
+                              setEditPrices(prev => ({ ...prev, [listing.listingId.toString()]: e.target.value }))
+                            }
                           />
                           <button
                             className="btn btn-sm btn-primary"
@@ -538,7 +612,11 @@ export default function Marketplace() {
                           </button>
                         </div>
                         {/* 卖家查看报价并接受 */}
-                        <SellerOffersPanel listingId={listing.listingId} onAccept={handleAcceptOffer} acceptingKey={acceptingKey} />
+                        <SellerOffersPanel
+                          listingId={listing.listingId}
+                          onAccept={handleAcceptOffer}
+                          acceptingKey={acceptingKey}
+                        />
                       </div>
                     ) : (
                       <div className="p-3 bg-base-200 rounded-lg space-y-2">
@@ -547,7 +625,9 @@ export default function Marketplace() {
                             className="input input-bordered input-sm flex-1"
                             placeholder="报价 (ETH)"
                             value={offerPrices[listing.listingId.toString()] || ""}
-                            onChange={e => setOfferPrices(prev => ({ ...prev, [listing.listingId.toString()]: e.target.value }))}
+                            onChange={e =>
+                              setOfferPrices(prev => ({ ...prev, [listing.listingId.toString()]: e.target.value }))
+                            }
                           />
                           <button
                             className="btn btn-sm btn-secondary"
@@ -587,11 +667,21 @@ export default function Marketplace() {
           </div>
 
           <div className="join flex justify-center my-6">
-            <button className="join-item btn" onClick={() => gotoPage(currentPageSafe - 1)} disabled={currentPageSafe <= 1}>
+            <button
+              className="join-item btn"
+              onClick={() => gotoPage(currentPageSafe - 1)}
+              disabled={currentPageSafe <= 1}
+            >
               «
             </button>
-            <button className="join-item btn">第 {currentPageSafe} / {pageCount} 页</button>
-            <button className="join-item btn" onClick={() => gotoPage(currentPageSafe + 1)} disabled={currentPageSafe >= pageCount}>
+            <button className="join-item btn">
+              第 {currentPageSafe} / {pageCount} 页
+            </button>
+            <button
+              className="join-item btn"
+              onClick={() => gotoPage(currentPageSafe + 1)}
+              disabled={currentPageSafe >= pageCount}
+            >
               »
             </button>
           </div>

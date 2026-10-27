@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { NFTCard } from "./NFTCard";
+import { parseEther } from "viem";
 import { useAccount } from "wagmi";
 import { useScaffoldContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 // 新增：写合约的 hook 与价格解析
 import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
-import { parseEther } from "viem";
 import { notification } from "~~/utils/scaffold-eth";
 import { getMetadataFromIPFS } from "~~/utils/simpleNFT/ipfs-fetch";
 import { NFTMetaData } from "~~/utils/simpleNFT/nftsMetadata";
@@ -210,7 +210,13 @@ export const MyHoldings = () => {
             <button className="btn btn-outline btn-sm" onClick={() => setSelectedIds([])}>
               清空选择
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => { setBulkMode(false); setSelectedIds([]); }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setBulkMode(false);
+                setSelectedIds([]);
+              }}
+            >
               退出批量
             </button>
             <button
@@ -228,7 +234,9 @@ export const MyHoldings = () => {
               )}
             </button>
             {isBulkListing && bulkProgress ? (
-              <span className="text-xs opacity-70">进度 {bulkProgress.listed}/{bulkProgress.total}</span>
+              <span className="text-xs opacity-70">
+                进度 {bulkProgress.listed}/{bulkProgress.total}
+              </span>
             ) : null}
           </div>
         )}
@@ -247,7 +255,7 @@ export const MyHoldings = () => {
                 key={item.id}
                 selectable={bulkMode}
                 selected={selectedIds.includes(item.id)}
-                onSelectedChange={(checked) => {
+                onSelectedChange={checked => {
                   setSelectedIds(prev => {
                     const exists = prev.includes(item.id);
                     if (checked) {
@@ -262,11 +270,21 @@ export const MyHoldings = () => {
 
           {/* 分页控件 */}
           <div className="join flex justify-center my-6 px-5">
-            <button className="join-item btn" onClick={() => gotoPage(currentPageSafe - 1)} disabled={currentPageSafe <= 1}>
+            <button
+              className="join-item btn"
+              onClick={() => gotoPage(currentPageSafe - 1)}
+              disabled={currentPageSafe <= 1}
+            >
               «
             </button>
-            <button className="join-item btn">第 {currentPageSafe} / {pageCount} 页</button>
-            <button className="join-item btn" onClick={() => gotoPage(currentPageSafe + 1)} disabled={currentPageSafe >= pageCount}>
+            <button className="join-item btn">
+              第 {currentPageSafe} / {pageCount} 页
+            </button>
+            <button
+              className="join-item btn"
+              onClick={() => gotoPage(currentPageSafe + 1)}
+              disabled={currentPageSafe >= pageCount}
+            >
               »
             </button>
           </div>

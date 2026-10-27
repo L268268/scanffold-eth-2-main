@@ -6,7 +6,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hardhat } from "viem/chains";
 import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
-import { ArrowDownTrayIcon, ArrowPathIcon, ArrowUpTrayIcon, PhotoIcon, ShoppingBagIcon} from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ArrowUpTrayIcon,
+  PhotoIcon,
+  ShoppingBagIcon,
+} from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -34,7 +40,7 @@ export const menuLinks: HeaderMenuLink[] = [
   {
     label: "Blind Auctions",
     href: "/blind-auctions",
-    icon: <ArrowPathIcon className="h-4 w-4" />,   
+    icon: <ArrowPathIcon className="h-4 w-4" />,
   },
 
   {

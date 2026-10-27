@@ -5,7 +5,7 @@ import { ipfsClient } from "~~/utils/simpleNFT/ipfs";
 export async function POST(request: Request) {
   try {
     const { imageUrl, name, description, attributes } = await request.json();
-    
+
     if (!imageUrl || !name) {
       return Response.json({ error: "Image URL and name are required" }, { status: 400 });
     }
@@ -23,18 +23,18 @@ export async function POST(request: Request) {
         },
         {
           trait_type: "Created",
-          value: new Date().toISOString().split('T')[0], // Current date
+          value: new Date().toISOString().split("T")[0], // Current date
         },
       ],
     };
 
     // Upload metadata to IPFS
     const result = await ipfsClient.add(JSON.stringify(metadata));
-    
-    return Response.json({ 
-      success: true, 
+
+    return Response.json({
+      success: true,
       metadataHash: result.path,
-      metadata 
+      metadata,
     });
   } catch (error) {
     console.error("Error creating NFT metadata:", error);
