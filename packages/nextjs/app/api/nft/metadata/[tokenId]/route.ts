@@ -10,10 +10,11 @@ const publicClient = createPublicClient({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { tokenId: string } }
+  // Next.js 15 起，动态路由的 params 是 Promise，必须 await 后再用
+  { params }: { params: Promise<{ tokenId: string }> }
 ) {
   try {
-    const tokenId = params.tokenId;
+    const { tokenId } = await params;
 
     if (!tokenId) {
       return NextResponse.json({ error: "Token ID is required" }, { status: 400 });
