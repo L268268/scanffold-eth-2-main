@@ -29,9 +29,16 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
-      
-      - name: Run hardhat node, deploy contracts (& generate contracts typescript output)
-        run: yarn chain & yarn deploy
+
+      # 注意：不要在这里跑 `yarn chain` + `yarn deploy`。
+      # 默认网络 localhost 指向 127.0.0.1:8888（本地 Geth），与 `yarn chain`
+      # 启动的 8545 端口 hardhat 节点不互通，CI 上必然连接失败。
+      # lint 与类型检查只需要编译产物和已入库的 deployedContracts.ts。
+      - name: Compile contracts (生成 artifacts 与 typechain 类型)
+        run: yarn compile
+
+      - name: Run hardhat tests
+        run: yarn test
 
       - name: Run hardhat lint
         run: yarn hardhat:lint --max-warnings=0
